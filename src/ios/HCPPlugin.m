@@ -721,18 +721,25 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 * @param versionTitle
 */
 - (int)versionToCode:(NSString *) versionTitle {
-    NSArray *versionParts = [versionTitle componentsSeparatedByString:@"."];
-    int multiplierStep = 100;
-    u_long partsCount = [versionParts count];
-    int multiplier = pow(multiplierStep, partsCount - 1);
-    int versionCode = 0;
     
-    for (NSString *versionPart in versionParts) {
-        versionCode += [versionPart integerValue] * multiplier;
-        multiplier /= multiplierStep;
-    }
-    
-    return versionCode;
+     @try {
+        NSArray *versionParts = [versionTitle componentsSeparatedByString:@"."];
+        int multiplierStep = 100;
+        u_long partsCount = [versionParts count];
+        int multiplier = pow(multiplierStep, partsCount - 1);
+        int versionCode = 0;
+
+        for (NSString *versionPart in versionParts) {
+            versionCode += [versionPart integerValue] * multiplier;
+            multiplier /= multiplierStep;
+        }
+
+        return versionCode;
+
+     }
+     @catch (NSException *exception) {
+        return 0;
+     }
 }
 
 #pragma mark Methods, invoked from Javascript
