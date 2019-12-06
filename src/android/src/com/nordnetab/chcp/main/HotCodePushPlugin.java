@@ -247,15 +247,22 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private int versionToCode(String versionTitle) {
         final String[] versionParts = versionTitle.split("\\.");
         final int multiplierStep = 100;
-        int multiplier = ((int) Math.pow(multiplierStep, (versionParts.length - 1)));
-        int versionCode = 0;
 
-        for (String versionPart : versionParts) {
-            versionCode += Integer.parseInt(versionPart) * multiplier;
-            multiplier /= multiplierStep;
+        try {
+            int multiplier = ((int) Math.pow(multiplierStep, (versionParts.length - 1)));
+            int versionCode = 0;
+            
+            for (String versionPart : versionParts) {
+                versionCode += Integer.parseInt(versionPart) * multiplier;
+                multiplier /= multiplierStep;
+            }
+            
+            return versionCode;
+        } catch(Exception e) {
+            // got unparsable old version number format (e.g. timestamp)
+            return 0;
         }
-
-        return versionCode;
+        
     }
 
     // endregion
@@ -971,7 +978,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // Get config from application bundle.
         final ApplicationConfig originalAppConfig = ApplicationConfig.configFromAssets(cordova.getActivity(), PluginFilesStructure.CONFIG_FILE_NAME);
-        final int originalVersionCode = versionToCode(originalAppConfig.getContentConfig().getReleaseVersion());
+        
+        // versionCode will be 0 if versionName is of unsupported format
+        final int originalVersionCode = versionToCode(originalAppConfig.getContentConfig().getReleaseVersion());      
         final int currentVersionCode = versionToCode(pluginInternalPrefs.getCurrentReleaseVersionName());
 
         if (originalVersionCode > currentVersionCode) {
