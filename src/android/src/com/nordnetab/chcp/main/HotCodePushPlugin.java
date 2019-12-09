@@ -1,7 +1,10 @@
 package com.nordnetab.chcp.main;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -976,30 +979,36 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        // Get config from application bundle.
-        final ApplicationConfig originalAppConfig = ApplicationConfig.configFromAssets(cordova.getActivity(), PluginFilesStructure.CONFIG_FILE_NAME);
-        
-        // versionCode will be 0 if versionName is of unsupported format
-        final int originalVersionCode = versionToCode(originalAppConfig.getContentConfig().getReleaseVersion());      
-        final int currentVersionCode = versionToCode(pluginInternalPrefs.getCurrentReleaseVersionName());
+        // manually check permission
+        // If you are targeting Android SDK >=23 you need to take permission at run-time.
 
-        if (originalVersionCode > currentVersionCode) {
-            // Clear all releases, because a user updated application from a store.
-            // Remove all except the release of the current version. We need to exclude it, because clearing and initialization of release are asynchronous tasks. 
-            wasCleanupBecauseNewVersionInstalled = true;
-            CleanUpHelper.removeReleaseFolders(cordova.getActivity(), new String[]{
-                originalAppConfig.getContentConfig().getReleaseVersion()
-            });
-            return;
+        if (ContextCompat.checkSelfPermission(cordova.getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            // Get config from application bundle.
+            final ApplicationConfig originalAppConfig = ApplicationConfig.configFromAssets(cordova.getActivity(), PluginFilesStructure.CONFIG_FILE_NAME);
+
+            // versionCode will be 0 if versionName is of unsupported format
+            final int originalVersionCode = versionToCode(originalAppConfig.getContentConfig().getReleaseVersion());      
+            final int currentVersionCode = versionToCode(pluginInternalPrefs.getCurrentReleaseVersionName());
+
+            if (originalVersionCode > currentVersionCode) {
+                // Clear all releases, because a user updated application from a store.
+                // Remove all except the release of the current version. We need to exclude it, because clearing and initialization of release are asynchronous tasks. 
+                wasCleanupBecauseNewVersionInstalled = true;
+                CleanUpHelper.removeReleaseFolders(cordova.getActivity(), new String[]{
+                    originalAppConfig.getContentConfig().getReleaseVersion()
+                });
+                return;
+            }
+
+
+            CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
+                    new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
+                            pluginInternalPrefs.getPreviousReleaseVersionName(),
+                            pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
+                    }
+            );
         }
-
-
-        CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
-                new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
-                        pluginInternalPrefs.getPreviousReleaseVersionName(),
-                        pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
-                }
-        );
     }
 
     //endregion
