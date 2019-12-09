@@ -43,8 +43,10 @@ public class FilesUtility {
 
         if (fileOrDirectory.isDirectory()) {
             File[] filesList = fileOrDirectory.listFiles();
-            for (File child : filesList) {
-                delete(child);
+            if (filesList != null) {
+                for (File child : filesList) {
+                    delete(child);
+                }
             }
         }
 
