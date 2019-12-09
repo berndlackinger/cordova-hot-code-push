@@ -57,23 +57,28 @@ public class CleanUpHelper {
         }
 
         File[] files = rootFolder.listFiles();
-        for (File file : files) {
-            boolean isIgnored = false;
-            for (String excludedReleaseName : excludedReleases) {
-                if (TextUtils.isEmpty(excludedReleaseName)) {
-                    continue;
+        
+        if ( files != null) {
+        
+            for (File file : files) {
+                boolean isIgnored = false;
+                for (String excludedReleaseName : excludedReleases) {
+                    if (TextUtils.isEmpty(excludedReleaseName)) {
+                        continue;
+                    }
+
+                    if (file.getName().equals(excludedReleaseName)) {
+                        isIgnored = true;
+                        break;
+                    }
                 }
 
-                if (file.getName().equals(excludedReleaseName)) {
-                    isIgnored = true;
-                    break;
+                if (!isIgnored) {
+                    Log.d("CHCP", "Deleting old release folder: " + file.getName());
+                    FilesUtility.delete(file);
                 }
             }
-
-            if (!isIgnored) {
-                Log.d("CHCP", "Deleting old release folder: " + file.getName());
-                FilesUtility.delete(file);
-            }
+            
         }
     }
 
